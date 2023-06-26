@@ -12,21 +12,25 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import dj_database_url
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+import environ
+env = environ.Env()
+environ.Env.read_env()
+
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#i!(p=!mniefmx14_=n@l=4!ku!v)9e=%b7)6=+9^%q%)v@eos'
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost','.vercel.app']
+ALLOWED_HOSTS = ['localhost','*']
 
 
 # Application definition
@@ -75,10 +79,11 @@ WSGI_APPLICATION = 'taskmgmt.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-db_config = dj_database_url.config(
-    default="postgres://default:Nd9SxTkuozE2@ep-crimson-smoke-275086.us-east-1.postgres.vercel-storage.com:5432/verceldb", ssl_require=True)
-db_config['ATOMIC_REQUESTS'] = True
+#render db url
+db_config = dj_database_url.parse(env('DATABASE_URL'))
 DATABASES = {
+    'default' : db_config
+}
     # 'default': {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': BASE_DIR / 'db.sqlite3',
@@ -91,8 +96,8 @@ DATABASES = {
     #     'HOST': 'ep-odd-glitter-936173-pooler.us-east-1.postgres.vercel-storage.com',
     #     'PORT': '5432',
     # }
-    'default' : db_config
-}
+
+
 
 
 # Password validation
