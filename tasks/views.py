@@ -14,6 +14,8 @@ def decode_base64(string_to_decode: str):
     return ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
 
+# ASSIGNEE CRUD
+
 @csrf_exempt
 def create_assignee(request):
     try:
@@ -87,6 +89,8 @@ def retrieve_assignee(request, id):
         return JsonResponse({'status': '404', 'message': f'Assignee with id {id} not found'}, status=404)
 
 
+# BOARD CRUD
+
 @csrf_exempt
 def create_board(request):
     body = json.loads(request.body.decode('utf-8'))
@@ -131,6 +135,8 @@ def retrieve_board(request, id):
     except Board.DoesNotExist:
         return JsonResponse({'status': '404', 'message': f'Board with id {id} not found'}, status=404)
 
+
+# TASK CRUD
 
 @csrf_exempt
 def create_task(request):
@@ -197,6 +203,65 @@ def retrieve_task(request, id):
         return HttpResponse(json.dumps(data), content_type="application/json")
     except Task.DoesNotExist:
         return JsonResponse({'status': '404', 'message': f'Task with id {id} not found'}, status=404)
+
+
+# COLUMN CRUD
+
+
+@csrf_exempt
+def retrieve_all_columns(request):
+    columns = serializers.serialize('json', Column.objects.all())
+    return HttpResponse(columns, content_type="application/json")
+
+
+@csrf_exempt
+def retrieve_column(request, id):
+    try:
+        column = Column.objects.get(id=id)
+        data = column.get_details()
+        return HttpResponse(json.dumps(data), content_type='apllication/json')
+    except Column.DoesNotExist:
+        return JsonResponse({'status': '404', 'message': f'Column with id {id} not found'}, status=404)
+
+
+@csrf_exempt
+def create_column(request):
+    try:
+        body = json.loads(request.body.decode('utf-8'))
+        board = Board.objects.get(id=body['board'])
+        column = Column(name=body['name'], position=body['position'], size=body['size'], board=board)
+        column.save()
+        return JsonResponse({'status': '200', 'message': f'Column {body} was created successfully'})
+    except Board.DoesNotExist:
+        return JsonResponse({'status': '404', 'message': f'Board with id {body["board"]} not found'}, status=404)
+
+
+@csrf_exempt
+def delete_column(request, id):
+    try:
+        obj = Column.objects.get(id=id)
+        obj.delete()
+        return JsonResponse({'status': '200', 'response': f'Column with id {id} was deleted successfully'})
+    except Column.DoesNotExist:
+        return JsonResponse({'status': '404', 'response': f'Column with id {id} not found'}, status=404)
+
+
+@csrf_exempt
+def edit_column(request, id):
+    try:
+        new_body = json.loads(request.body.decode('utf-8'))
+        board = Board.objects.get(id=new_body['board'])
+        column = Column.objects.filter(id=id)
+        if column.exists():
+            column.update(name=new_body['name'], position=new_body['position'], size=new_body['size'], board=board)
+            return JsonResponse({'status': '200', 'response': f'Column with id {id} was updated successfully'})
+        else:
+            return JsonResponse({'status': '404', 'message': f'Column with id {id} not found'}, status=404)
+    except Board.DoesNotExist:
+        return JsonResponse({'status': '404', 'message': f'Board with id {new_body["board"]} not found'}, status=404)
+
+
+# CUSTOM ERRORS
 
 
 def custom400(request, exception=None):
